@@ -1,7 +1,6 @@
 import pandas as pd
-import pandas as pd
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
+from sklearn.metrics import silhouette_score, pairwise_distances
 import numpy as np
 import streamlit as st
 import pydeck as pdk
@@ -12,11 +11,11 @@ def clean_data(filepath):
     df.loc[df['abv'] < 0.01, 'cat_name'] = "Non Alcoholic"
     df.sort_values(by='brewery_id', inplace=True)
     df['style'] = df['style'].str.title()
-    df.fillna({'abv': 0, 'ibu': 0}, inplace=True)  # Replace NaN values with default numbers
     return df
 
 def haversine(lat1, lon1, lat2, lon2):
     lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+
     dlon = lon2 - lon1 
     dlat = lat2 - lat1 
     a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
@@ -34,9 +33,11 @@ def cluster_or_locations(df, category):
         avg_dists = []
         for center in centers:
             center_lat, center_lon = center
+
             cluster_index = np.where(np.all(centers == center, axis=1))[0][0]
             cluster_breweries = category_df[category_df['cluster'] == cluster_index]
-            distances = [haversine(center_lat, center_lon, lat, lon) for lat, lon in zip(cluster_breweries['brewery_latitude', 'brewery_longitude'])]
+            
+            distances = [haversine(center_lat, center_lon, lat, lon) for lat, lon in zip(cluster_breweries['brewery_latitude'], cluster_breweries['brewery_longitude'])]
             avg_dists.append(np.mean(distances))
         
         try:
@@ -138,6 +139,7 @@ def main():
         brewery_beers = df[(df['brewery'] == brewery_name) & (df['style'] == category)]
         for _, beer in brewery_beers.iterrows():
             st.sidebar.write(f"{beer['label'].split('(')[0]} - {beer['style']} - ABV: {round(beer['abv']*100, 1)}%")
+        
         
         visualize_on_map(category_df, centers, is_clustered, brewery_location)
     else:
