@@ -122,7 +122,7 @@ def display_scores_table(scores):
 def main():
     st.title('Beer Style Clusters in the US')
     
-    df = clean_data('/Users/michaelrodden/Georgia Tech/ISYE 7406/Project/beers_new1.csv')  
+    df = clean_data('beers_new1.csv')  
     
     categories = df['style'].unique()
     default_index = list(categories).index('American Ipa') if 'American Ipa' in categories else 0
